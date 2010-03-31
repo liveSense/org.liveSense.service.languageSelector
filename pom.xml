@@ -185,7 +185,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>git-fetch</id>
+			<id>git-pull</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -202,7 +202,7 @@
 						<configuration>
 							<executable>git</executable>
 							<arguments>
-								<argument>fetch</argument>
+								<argument>pull</argument>
 								<argument>origin</argument>
 								<argument>master</argument>
 							</arguments>
