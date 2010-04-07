@@ -108,14 +108,14 @@
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.compendium</artifactId>
-			<version>4.2.0</version>
+			<version>4.1.0</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
-			<version>4.2.0</version>
+			<version>4.1.0</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
@@ -162,7 +162,8 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	<profiles>		<profile>
+	<profiles>
+		<profile>
 			<id>git-push</id>
 			<build>
 				<plugins>
