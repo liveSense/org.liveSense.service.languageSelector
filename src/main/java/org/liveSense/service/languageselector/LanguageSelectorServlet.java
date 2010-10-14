@@ -34,7 +34,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.mime.MimeTypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.liveSense.utils.Configurator;
+import org.liveSense.core.Configurator;
 import org.osgi.service.component.ComponentContext;
 
 /**
