@@ -63,7 +63,6 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	static final String STORE_TYPE_COOKIE = "cookie";
 	static final String STORE_TYPE_SESSION = "session";
 
-	static final String STORE_LOCALE_KEY = "locale";
 	
 	/**
 	 * @scr.reference
@@ -76,14 +75,6 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	private final Logger log = LoggerFactory.getLogger(LanguageSelectorServlet.class);
 
 
-	/**
-	 * @scr.property    label="%storeKeyName.name"
-	 *                  description="%storeKeyName.description"
-	 *                  valueRef="DEFAULT_STORE_KEY_NAME"
-	 */
-	public static final String PARAM_STORE_KEY_NAME = "storeKeyName";
-	public static final String DEFAULT_STORE_KEY_NAME = STORE_LOCALE_KEY;
-	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
 
 
 	/**
@@ -103,15 +94,6 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	 */
 	protected void activate(ComponentContext componentContext) {
 		Dictionary<?, ?> props = componentContext.getProperties();
-
-		String storeKeyNameNew = (String) componentContext.getProperties().get(PARAM_STORE_KEY_NAME);
-		if (storeKeyNameNew == null || storeKeyNameNew.length() == 0) {
-			storeKeyNameNew = DEFAULT_STORE_KEY_NAME;
-		}
-		if (!storeKeyNameNew.equals(this.storeKeyName)) {
-			log.info("Setting new storeKeyName {} (was {})", storeKeyNameNew, this.storeKeyName);
-			this.storeKeyName = storeKeyNameNew;
-		}
 
 		String storeTypeNew = (String) componentContext.getProperties().get(PARAM_STORE_TYPE);
 		if (storeTypeNew == null || storeTypeNew.length() == 0) {
@@ -318,7 +300,7 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 		
 		if (request.getParameter("locale") != null) {
 			if (storeType.equals(STORE_TYPE_COOKIE)) {
-				Cookie cookie = new Cookie(storeKeyName, request.getParameter("locale"));
+				Cookie cookie = new Cookie(languageSelector.getStoreKeyName(), request.getParameter("locale"));
 
 				// Setting cookie domain to be cross domain cookie
 				if (request.getServerName().indexOf(".") > 0) {
@@ -330,7 +312,7 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 				cookie.setSecure(request.isSecure());
 				response.addCookie(cookie);
 			} else if (storeType.equals(STORE_TYPE_SESSION)) {
-				request.getSession(true).setAttribute(storeKeyName, request.getParameter("locale"));
+				request.getSession(true).setAttribute(languageSelector.getStoreKeyName(), request.getParameter("locale"));
 			}
 		}
 		response.getWriter().write("<html><head><meta http-equiv=\"refresh\" content=\"0;url="+request.getHeader("referer")+"\"/></head><body/></html>");

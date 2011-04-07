@@ -11,6 +11,11 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpSession;
+
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Bundle;
 
@@ -42,7 +47,17 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public static final String[] DEFAULT_LANGUAGES = new String[]{"localhost!" + Locale.getDefault()};
 	private String[] languages = DEFAULT_LANGUAGES;
 
-	
+	static final String STORE_LOCALE_KEY = "locale";
+
+	/**
+	 * @scr.property    label="%storeKeyName.name"
+	 *                  description="%storeKeyName.description"
+	 *                  valueRef="DEFAULT_STORE_KEY_NAME"
+	 */
+	public static final String PARAM_STORE_KEY_NAME = "storeKeyName";
+	public static final String DEFAULT_STORE_KEY_NAME = STORE_LOCALE_KEY;
+	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
+
 	private HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
 	private HashMap<String, HashMap<String, Locale>> customLangs = new HashMap<String, HashMap<String,Locale>>();
 	private HashMap<String, HashMap<String, String>> langNames = new HashMap<String, HashMap<String, String>>();
@@ -59,6 +74,15 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	protected void activate(ComponentContext componentContext) {
 		Dictionary<?, ?> props = componentContext.getProperties();
 		bundle = componentContext.getBundleContext().getBundle();
+
+		String storeKeyNameNew = (String) componentContext.getProperties().get(PARAM_STORE_KEY_NAME);
+		if (storeKeyNameNew == null || storeKeyNameNew.length() == 0) {
+			storeKeyNameNew = DEFAULT_STORE_KEY_NAME;
+		}
+		if (!storeKeyNameNew.equals(this.storeKeyName)) {
+			log.info("Setting new storeKeyName {} (was {})", storeKeyNameNew, this.storeKeyName);
+			this.storeKeyName = storeKeyNameNew;
+		}
 
 		// Setting up languages
 		String[] languagesNew = OsgiUtil.toStringArray(componentContext.getProperties().get(PARAM_LANGUAGES), DEFAULT_LANGUAGES);
@@ -243,5 +267,31 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 			}
 		}
 		return null;
+	}
+
+
+	public Locale getLocaleByRequest(
+		SlingHttpServletRequest request) {
+
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			if (session.getAttribute(storeKeyName) != null) {
+				return string2Locale((String)session.getAttribute(storeKeyName));
+			}
+		}
+		
+		for (int i = 0; i < request.getCookies().length; i++) {
+			Cookie cookie = request.getCookies()[i];
+			if (cookie.getName().equals(storeKeyName)) {
+				return string2Locale(cookie.getValue());
+			}	
+		}
+			
+		return null;
+	}
+
+
+	public String getStoreKeyName() {
+		return storeKeyName;
 	}
 }
