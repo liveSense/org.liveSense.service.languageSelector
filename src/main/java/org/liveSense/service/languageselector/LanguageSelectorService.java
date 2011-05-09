@@ -4,8 +4,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-
+import javax.servlet.http.HttpServletRequest;
 
 public interface LanguageSelectorService {
 	public void addLanguage(String domain,String locale);
@@ -14,6 +13,6 @@ public interface LanguageSelectorService {
 	public String getLanguageName(Locale lang, Locale locale);
 	public String getLanguageName(String lang, String locale);
 	public InputStream getFlag(String locale, String size, String imageType);
-	public Locale getLocaleByRequest(SlingHttpServletRequest request);
+	public Locale getLocaleByRequest(HttpServletRequest request);
 	public String getStoreKeyName();
 }

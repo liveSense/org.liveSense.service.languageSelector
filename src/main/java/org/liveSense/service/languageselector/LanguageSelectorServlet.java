@@ -28,6 +28,12 @@ import javax.servlet.http.Cookie;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -38,35 +44,32 @@ import org.liveSense.core.Configurator;
 import org.osgi.service.component.ComponentContext;
 
 /**
- * The <code>CaptchaServlet</code> returns a captcha image and set sessionID for captcha 
- * servlet.
- * 
- * @scr.component immediate="false" label="%captcha.servlet.name"
- *                description="%captcha.servlet.description"
- * 
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" value="/session/language"
- * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
+ * The <code>LanguageSelectorServlet</code> 
+ *   
  */
+@Component(immediate=true, label="%language.servlet.name", description="%language.servlet.description")
+@Service(javax.servlet.Servlet.class)
+@Properties(value={
+	@Property(name="sling.servlet.paths", value="/session/language"),
+	@Property(name="sling.servlet.methods", value={"GET", "POST"})
+})
+
+
+
 public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 
-	/**
-	 * @scr.reference
-	 */
-	LanguageSelectorService languageSelector;
-	/**
-	 * @scr.reference
-	 */
-	Configurator configurator;
+    	@Reference
+    	LanguageSelectorService languageSelector;
+
+    	@Reference
+    	Configurator configurator;
+    	
 	static final int DEFAULT_BUFFER_SIZE = 4096;
 
 	static final String STORE_TYPE_COOKIE = "cookie";
 	static final String STORE_TYPE_SESSION = "session";
 
-	
-	/**
-	 * @scr.reference
-	 */
+	@Reference
 	MimeTypeService mimeTypeService;
 
 	//HashMap<String,String> = mimenew HashMap<String, String>();
@@ -75,15 +78,9 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	private final Logger log = LoggerFactory.getLogger(LanguageSelectorServlet.class);
 
 
-
-
-	/**
-	 * @scr.property    label="%storeType.name"
-	 *                  description="%storeType.description"
-	 *                  valueRef="DEFAULT_STORE_TYPE"
-	 */
 	public static final String PARAM_STORE_TYPE = "storeType";
 	public static final String DEFAULT_STORE_TYPE = STORE_TYPE_COOKIE;
+	@Property(name=PARAM_STORE_TYPE, label="%soreType.name", description="%storeType.description", value=DEFAULT_STORE_TYPE)
 	private String storeType = DEFAULT_STORE_TYPE;
 
 	/**
@@ -92,6 +89,7 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	 * @param componentContext The OSGi <code>ComponentContext</code> of this
 	 *            component.
 	 */
+	@Activate
 	protected void activate(ComponentContext componentContext) {
 		Dictionary<?, ?> props = componentContext.getProperties();
 
@@ -103,9 +101,6 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 			log.info("Setting new storeType {} (was {})", storeTypeNew, this.storeType);
 			this.storeType = storeTypeNew;
 		}
-
-
-
 	}
 
 	/**

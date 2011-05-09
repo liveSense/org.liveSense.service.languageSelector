@@ -13,9 +13,14 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Bundle;
 
@@ -23,39 +28,37 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Language selector service
- *
- * @scr.service
-
- * @scr.component immediate="false" label="%service.name"
- * 					description="%service.description"
- * @scr.property name="service.description" value="Language Selector service"
- * @scr.property name="service.vendor" value="liveSense.org"
+/** 
+ * Language selector service
  */
+
+
+@Component(immediate=true, label="%langugae.service.name", description="%language.service.description")
+@Service
+@Properties(value={
+	@Property(name="service.vendor", value="liveSense.org")
+})
 public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 
 	/**
 	 * default log
 	 */
 	private final Logger log = LoggerFactory.getLogger(LanguageSelectorServiceImpl.class);
-	/**
-	 * @scr.property    label="%languages.name"
-	 *                  description="%languages.description"
-	 *                  valueRef="DEFAULT_LANGUAGES"
-	 */
+
 	public static final String PARAM_LANGUAGES = "languages";
-	public static final String[] DEFAULT_LANGUAGES = new String[]{"localhost!" + Locale.getDefault()};
+	public static final String DEFAULT_LANGUAGE = "localhost!en_US";
+	public static final String[] DEFAULT_LANGUAGES = new String[]{DEFAULT_LANGUAGE}; //+ Locale.getDefault();
+	
+	
+	@Property(name=PARAM_LANGUAGES, label="%languages.name", description="%languages.description", value = DEFAULT_LANGUAGE)
 	private String[] languages = DEFAULT_LANGUAGES;
 
 	static final String STORE_LOCALE_KEY = "locale";
 
-	/**
-	 * @scr.property    label="%storeKeyName.name"
-	 *                  description="%storeKeyName.description"
-	 *                  valueRef="DEFAULT_STORE_KEY_NAME"
-	 */
 	public static final String PARAM_STORE_KEY_NAME = "storeKeyName";
 	public static final String DEFAULT_STORE_KEY_NAME = STORE_LOCALE_KEY;
+
+	@Property(name=PARAM_STORE_KEY_NAME, label="%storeKey.name", description="%storeKey.description", value=DEFAULT_STORE_KEY_NAME)
 	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
 
 	private HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
@@ -71,6 +74,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	 * @param componentContext The OSGi <code>ComponentContext</code> of this
 	 *            component.
 	 */
+	@Activate
 	protected void activate(ComponentContext componentContext) {
 		Dictionary<?, ?> props = componentContext.getProperties();
 		bundle = componentContext.getBundleContext().getBundle();
@@ -271,7 +275,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 
 
 	public Locale getLocaleByRequest(
-		SlingHttpServletRequest request) {
+		HttpServletRequest request) {
 
 		HttpSession session = request.getSession(false);
 		if (session != null) {
@@ -280,11 +284,14 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 			}
 		}
 		
-		for (int i = 0; i < request.getCookies().length; i++) {
-			Cookie cookie = request.getCookies()[i];
-			if (cookie.getName().equals(storeKeyName)) {
-				return string2Locale(cookie.getValue());
-			}	
+		Cookie[] cookies = request.getCookies();
+        		if (cookies != null) {
+        		for (int i = 0; i < cookies.length; i++) {
+        			Cookie cookie = cookies[i];
+        			if (cookie.getName().equals(storeKeyName)) {
+        				return string2Locale(cookie.getValue());
+        			}	
+        		}
 		}
 			
 		return null;
