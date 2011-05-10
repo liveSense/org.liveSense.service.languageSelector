@@ -20,8 +20,10 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.liveSense.core.Configurator;
 import org.osgi.framework.Bundle;
 
 import org.osgi.service.component.ComponentContext;
@@ -33,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 
 
-@Component(immediate=true, label="%langugae.service.name", description="%language.service.description")
+@Component(immediate=true, metatype=true, label="%langugae.service.name", description="%language.service.description")
 @Service
 @Properties(value={
 	@Property(name="service.vendor", value="liveSense.org")
@@ -62,9 +64,14 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
 
 	private HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
+	private HashMap<String, Locale> domainDefaults = new HashMap<String, Locale>();
 	private HashMap<String, HashMap<String, Locale>> customLangs = new HashMap<String, HashMap<String,Locale>>();
 	private HashMap<String, HashMap<String, String>> langNames = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, HashMap<String, String>> countryNames = new HashMap<String, HashMap<String, String>>();
+	
+
+    	@Reference
+    	Configurator configurator;
 
 	private Bundle bundle = null;
 
@@ -136,6 +143,8 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 				for (int j = 0; j < domLocsStr.length; j++) {
 					String loc = domLocsStr[j];
 					domainLocales.put(loc, string2Locale(loc));
+					if (j==0) 
+					    domainDefaults.put(domainLangs[0], string2Locale(loc));
 				}
 				langs.put(domainLangs[0], domainLocales);
 			}
@@ -244,9 +253,16 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	}
 
 	public List<Locale> getAvailableLanguages(String domain) {
-		return new ArrayList(langs.values());
+	        List<Locale> ret = new ArrayList<Locale>();
+	        if (langs.get(domain) != null) {
+	            for (Locale locale : langs.get(domain).values()) {
+	        	ret.add(locale);
+	            }
+	        }
+		return ret;
 	}
 
+	
 	public String getLanguageName(Locale lang, Locale locale) {
 		String ret = null;
 		HashMap<String, String> langHash = langNames.get(lang.getLanguage());
@@ -294,7 +310,10 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
         		}
 		}
 			
-		return null;
+        	// If the locale not found, we set the default
+        	Locale loc =  domainDefaults.get(request.getServerName());
+        	if (loc == null) loc = configurator.getDefaultLocale();
+        	return loc;
 	}
 
 
