@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.PropertyUnbounded;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.liveSense.core.Configurator;
 import org.osgi.framework.Bundle;
@@ -52,7 +53,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public static final String[] DEFAULT_LANGUAGES = new String[]{DEFAULT_LANGUAGE}; //+ Locale.getDefault();
 	
 	
-	@Property(name=PARAM_LANGUAGES, label="%languages.name", description="%languages.description", value = DEFAULT_LANGUAGE)
+	@Property(name=PARAM_LANGUAGES, label="%languages.name", description="%languages.description", unbounded=PropertyUnbounded.ARRAY, value = {DEFAULT_LANGUAGE})
 	private String[] languages = DEFAULT_LANGUAGES;
 
 	static final String STORE_LOCALE_KEY = "locale";
@@ -100,6 +101,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 		boolean languagesChanged = false;
 		if (languagesNew.length != this.languages.length) {
 			languagesChanged = true;
+			this.languages = languagesNew;
 		} else {
 			for (int i = 0; i < languagesNew.length; i++) {
 				if (!languagesNew[i].equals(this.languages[i])) {
