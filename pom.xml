@@ -86,7 +86,7 @@
 					<instructions>
 
 						<Export-Package>
-							org.liveSense.service.languageselector.*;version=${pom.version}
+							org.liveSense.service.languageselector.*;version=${project.version}
 						</Export-Package>
 
 						<Import-Package>
