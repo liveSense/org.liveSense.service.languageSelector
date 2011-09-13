@@ -30,8 +30,6 @@
       <developerConnection>scm:git:git://github.com/liveSense/org.liveSense.service.languageSelector.git</developerConnection>
       <url>https://github.com/liveSense/org.liveSense.service.languageSelector</url>
   </scm>  
-
-	<groupId>org.liveSense</groupId>
 	<artifactId>org.liveSense.service.languageSelector</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.1-SNAPSHOT</version>
