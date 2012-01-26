@@ -23,9 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Dictionary;
-import java.util.HashMap;
-import javax.servlet.http.Cookie;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -34,14 +35,11 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.mime.MimeTypeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.liveSense.core.Configurator;
 import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>LanguageSelectorServlet</code> 
@@ -56,13 +54,18 @@ import org.osgi.service.component.ComponentContext;
 
 
 
-public class LanguageSelectorServlet extends SlingAllMethodsServlet {
+public class LanguageSelectorServlet extends HttpServlet {
 
-    	@Reference
-    	LanguageSelectorService languageSelector;
+   	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8016477105020492838L;
 
-    	@Reference
-    	Configurator configurator;
+	@Reference
+   	LanguageSelectorService languageSelector;
+
+   	@Reference
+   	Configurator configurator;
     	
 	static final int DEFAULT_BUFFER_SIZE = 4096;
 
@@ -91,6 +94,7 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	 */
 	@Activate
 	protected void activate(ComponentContext componentContext) {
+		@SuppressWarnings("unused")
 		Dictionary<?, ?> props = componentContext.getProperties();
 
 		String storeTypeNew = (String) componentContext.getProperties().get(PARAM_STORE_TYPE);
@@ -196,52 +200,9 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 	}
 
 	@Override
-	protected void doGet(SlingHttpServletRequest request,
-			SlingHttpServletResponse response) throws IOException {
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws IOException {
 
-		/*
-		byte[] captchaChallengeAsJpeg = null;
-		// the output stream to render the captcha image as jpeg into
-		ByteArrayOutputStream jpegOutputStream = new ByteArrayOutputStream();
-		try {
-		// get the session id that will identify the generated captcha.
-		//the same id must be used to validate the response, the session id is a good candidate!
-
-		if (request.getSession() == null) {
-		request.getSession(true).setMaxInactiveInterval(configurator.getSessionTimeout().intValue());
-		}
-		request.getSession().setAttribute("captcha_service", captcha);
-
-		String captchaId = request.getSession().getId();
-
-		// call the ImageCaptchaService getChallenge method
-		BufferedImage challenge = captcha.getCaptchaImage(captchaId, request.getLocale());
-
-		// a jpeg encoder
-		JPEGImageEncoder jpegEncoder =
-		JPEGCodec.createJPEGEncoder(jpegOutputStream);
-		jpegEncoder.encode(challenge);
-		} catch (IllegalArgumentException e) {
-		response.sendError(HttpServletResponse.SC_NOT_FOUND);
-		return;
-		} catch (CaptchaServiceException e) {
-		response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		return;
-		}
-
-		captchaChallengeAsJpeg = jpegOutputStream.toByteArray();
-
-		// flush it in the response
-		response.setHeader("Cache-Control", "no-store");
-		response.setHeader("Pragma", "no-cache");
-		response.setDateHeader("Expires", 0);
-		response.setContentType("image/jpeg");
-		response.getOutputStream().write(captchaChallengeAsJpeg);
-		response.getOutputStream().flush();
-		response.getOutputStream().close();
-
-		 *
-		 */
 		String locale = null;
 		String type = null;
 		String size = null;
@@ -262,9 +223,12 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 		// Streaming the image
 		if (locale != null && type != null && imageType != null && size != null && type.equalsIgnoreCase("flag")) {
 
-			BufferedInputStream bisr = new BufferedInputStream(languageSelector.getFlag(locale, size, imageType));
-
-			if (bisr != null)
+			BufferedInputStream bisr = null;
+			try {
+				bisr = new BufferedInputStream(languageSelector.getFlag(locale, size, imageType));	
+			} catch (Throwable e) {
+			}
+			if (bisr != null) {
 				//response.setHeader("Cache-Control", "no-store");
 				//response.setHeader("Pragma", "no-cache");
 				response.setHeader("Cache-Control", "max-age=3600, must-revalidate");
@@ -280,27 +244,17 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 			} else {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
+		} else if (request.getParameter("locale") != null) {
+			String storeType = this.storeType;
+			if (request.getParameter("store") != null) {
+				storeType = request.getParameter("store");
+			}
 
-		}
-
-
-	@Override
-	protected void doPost(SlingHttpServletRequest request,
-			SlingHttpServletResponse response) throws IOException {
-
-		if (request.getParameter("store") != null) {
-			storeType = request.getParameter("store");
-		}
-
-		
-		if (request.getParameter("locale") != null) {
 			if (storeType.equals(STORE_TYPE_COOKIE)) {
 				Cookie cookie = new Cookie(languageSelector.getStoreKeyName(), request.getParameter("locale"));
 
-				// Setting cookie domain to be cross domain cookie
-				if (request.getServerName().indexOf(".") > 0) {
-					String domain  = request.getServerName().substring(request.getServerName().indexOf("."));
-					cookie.setDomain(domain);
+				if (request.getParameter("domain") != null) {
+					cookie.setDomain(request.getParameter("domain"));					
 				}
 				cookie.setMaxAge(-1);
 				cookie.setPath("/");
@@ -312,5 +266,13 @@ public class LanguageSelectorServlet extends SlingAllMethodsServlet {
 		}
 		response.getWriter().write("<html><head><meta http-equiv=\"refresh\" content=\"0;url="+request.getHeader("referer")+"\"/></head><body/></html>");
 		response.setContentType("text/html");
+	}
+
+
+	@Override
+	protected void doPost(HttpServletRequest request,
+			HttpServletResponse response) throws IOException {
+
+		doGet(request, response);
 	}
 }

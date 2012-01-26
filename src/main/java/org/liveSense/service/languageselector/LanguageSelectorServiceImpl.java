@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.PropertyUnbounded;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.liveSense.core.Configurator;
 import org.osgi.framework.Bundle;
 
@@ -39,7 +39,9 @@ import org.slf4j.LoggerFactory;
 @Component(immediate=true, metatype=true, label="%langugae.service.name", description="%language.service.description")
 @Service
 @Properties(value={
-	@Property(name="service.vendor", value="liveSense.org")
+		@Property(name=LanguageSelectorServiceImpl.PARAM_LANGUAGES, label="%languages.name", description="%languages.description", value = {LanguageSelectorServiceImpl.DEFAULT_LANGUAGE}, unbounded=PropertyUnbounded.ARRAY),
+		@Property(name=LanguageSelectorServiceImpl.PARAM_STORE_KEY_NAME, label="%storeKey.name", description="%storeKey.description", value=LanguageSelectorServiceImpl.DEFAULT_STORE_KEY_NAME),
+		@Property(name="service.vendor", value="liveSense.org")
 })
 public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 
@@ -53,7 +55,6 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public static final String[] DEFAULT_LANGUAGES = new String[]{DEFAULT_LANGUAGE}; //+ Locale.getDefault();
 	
 	
-	@Property(name=PARAM_LANGUAGES, label="%languages.name", description="%languages.description", unbounded=PropertyUnbounded.ARRAY, value = {DEFAULT_LANGUAGE})
 	private String[] languages = DEFAULT_LANGUAGES;
 
 	static final String STORE_LOCALE_KEY = "locale";
@@ -61,7 +62,6 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public static final String PARAM_STORE_KEY_NAME = "storeKeyName";
 	public static final String DEFAULT_STORE_KEY_NAME = STORE_LOCALE_KEY;
 
-	@Property(name=PARAM_STORE_KEY_NAME, label="%storeKey.name", description="%storeKey.description", value=DEFAULT_STORE_KEY_NAME)
 	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
 
 	private HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
@@ -87,52 +87,15 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 		Dictionary<?, ?> props = componentContext.getProperties();
 		bundle = componentContext.getBundleContext().getBundle();
 
-		String storeKeyNameNew = (String) componentContext.getProperties().get(PARAM_STORE_KEY_NAME);
-		if (storeKeyNameNew == null || storeKeyNameNew.length() == 0) {
-			storeKeyNameNew = DEFAULT_STORE_KEY_NAME;
-		}
-		if (!storeKeyNameNew.equals(this.storeKeyName)) {
-			log.info("Setting new storeKeyName {} (was {})", storeKeyNameNew, this.storeKeyName);
-			this.storeKeyName = storeKeyNameNew;
-		}
+		this.storeKeyName = (String) componentContext.getProperties().get(PARAM_STORE_KEY_NAME);
 
-		// Setting up languages
-		String[] languagesNew = OsgiUtil.toStringArray(componentContext.getProperties().get(PARAM_LANGUAGES), DEFAULT_LANGUAGES);
-		boolean languagesChanged = false;
-		if (languagesNew.length != this.languages.length) {
-			languagesChanged = true;
-			this.languages = languagesNew;
-		} else {
-			for (int i = 0; i < languagesNew.length; i++) {
-				if (!languagesNew[i].equals(this.languages[i])) {
-					languagesChanged = true;
-				}
-			}
-			if (languagesChanged) {
-				StringBuffer languagesValueList = new StringBuffer();
-				StringBuffer languagesNewValueList = new StringBuffer();
+		this.languages = PropertiesUtil.toStringArray(componentContext.getProperties().get(PARAM_LANGUAGES), DEFAULT_LANGUAGES);
+		customLangs.clear();
+		domainDefaults.clear();
+		langs.clear();
 
-				for (int i = 0; i < languagesNew.length; i++) {
-					if (i != 0) {
-						languagesNewValueList.append(", ");
-					}
-					languagesNewValueList.append(languagesNew[i].toString());
-				}
-
-				for (int i = 0; i < languages.length; i++) {
-					if (i != 0) {
-						languagesValueList.append(", ");
-					}
-					languagesValueList.append(languages[i].toString());
-				}
-				log.info("Setting new languages: {}) (was: {})", languagesNewValueList.toString(), languagesValueList.toString());
-				this.languages = languagesNew;
-			}
-		}
-		
-
-		for (int i = 0; i < languages.length; i++) {
-			String act = languages[i];
+		for (int i = 0; i < this.languages.length; i++) {
+			String act = this.languages[i];
 			String[] domainLangs = act.split("!");
 			if (domainLangs.length == 2) {
 				HashMap<String, Locale> domainLocales = null;
@@ -220,7 +183,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	}
 
 
-	private Locale string2Locale(String str) {
+	private static Locale string2Locale(String str) {
 		Locale ret = null;
 		String[] locParts = str.split("_");
 
@@ -322,4 +285,5 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public String getStoreKeyName() {
 		return storeKeyName;
 	}
+	
 }
