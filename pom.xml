@@ -33,7 +33,7 @@
 	<artifactId>org.liveSense.service.languageSelector</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.1-SNAPSHOT</version>
-	<name>liveSense Language selector service</name>
+	<name>liveSense :: Service :: Language selector</name>
 	<description>liveSense language selector service /session/language</description>
 
 	<build>
