@@ -1,6 +1,5 @@
 package org.liveSense.service.languageselector;
 
-import au.com.bytecode.opencsv.CSVReader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,24 +11,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.PropertyUnbounded;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.PropertyUnbounded;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.liveSense.core.Configurator;
+import org.liveSense.core.wrapper.RequestWrapper;
 import org.osgi.framework.Bundle;
-
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 /** 
  * Language selector service
@@ -53,8 +52,8 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	public static final String PARAM_LANGUAGES = "languages";
 	public static final String DEFAULT_LANGUAGE = "localhost!en_US";
 	public static final String[] DEFAULT_LANGUAGES = new String[]{DEFAULT_LANGUAGE}; //+ Locale.getDefault();
-	
-	
+
+
 	private String[] languages = DEFAULT_LANGUAGES;
 
 	static final String STORE_LOCALE_KEY = "locale";
@@ -69,10 +68,10 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	private HashMap<String, HashMap<String, Locale>> customLangs = new HashMap<String, HashMap<String,Locale>>();
 	private HashMap<String, HashMap<String, String>> langNames = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, HashMap<String, String>> countryNames = new HashMap<String, HashMap<String, String>>();
-	
 
-    	@Reference
-    	Configurator configurator;
+
+	@Reference
+	Configurator configurator;
 
 	private Bundle bundle = null;
 
@@ -109,7 +108,7 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 					String loc = domLocsStr[j];
 					domainLocales.put(loc, string2Locale(loc));
 					if (j==0) 
-					    domainDefaults.put(domainLangs[0], string2Locale(loc));
+						domainDefaults.put(domainLangs[0], string2Locale(loc));
 				}
 				langs.put(domainLangs[0], domainLocales);
 			}
@@ -218,16 +217,16 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 	}
 
 	public List<Locale> getAvailableLanguages(String domain) {
-	        List<Locale> ret = new ArrayList<Locale>();
-	        if (langs.get(domain) != null) {
-	            for (Locale locale : langs.get(domain).values()) {
-	        	ret.add(locale);
-	            }
-	        }
+		List<Locale> ret = new ArrayList<Locale>();
+		if (langs.get(domain) != null) {
+			for (Locale locale : langs.get(domain).values()) {
+				ret.add(locale);
+			}
+		}
 		return ret;
 	}
 
-	
+
 	public String getLanguageName(Locale lang, Locale locale) {
 		String ret = null;
 		HashMap<String, String> langHash = langNames.get(lang.getLanguage());
@@ -256,34 +255,15 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 
 
 	public Locale getLocaleByRequest(
-		HttpServletRequest request) {
+			HttpServletRequest request) {
 
-		HttpSession session = request.getSession(false);
-		if (session != null) {
-			if (session.getAttribute(storeKeyName) != null) {
-				return string2Locale((String)session.getAttribute(storeKeyName));
-			}
-		}
-		
-		Cookie[] cookies = request.getCookies();
-        		if (cookies != null) {
-        		for (int i = 0; i < cookies.length; i++) {
-        			Cookie cookie = cookies[i];
-        			if (cookie.getName().equals(storeKeyName)) {
-        				return string2Locale(cookie.getValue());
-        			}	
-        		}
-		}
-			
-        	// If the locale not found, we set the default
-        	Locale loc =  domainDefaults.get(request.getServerName());
-        	if (loc == null) loc = configurator.getDefaultLocale();
-        	return loc;
+		RequestWrapper rw = new RequestWrapper(request, configurator.getDefaultLocale(), storeKeyName);
+		return rw.getLocale();
 	}
 
 
 	public String getStoreKeyName() {
 		return storeKeyName;
 	}
-	
+
 }
