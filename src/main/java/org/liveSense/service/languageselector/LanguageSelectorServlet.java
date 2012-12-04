@@ -34,6 +34,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.mime.MimeTypeService;
 import org.liveSense.core.Configurator;
@@ -61,19 +63,19 @@ public class LanguageSelectorServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = 8016477105020492838L;
 
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
    	LanguageSelectorService languageSelector;
 
-   	@Reference
+	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
    	Configurator configurator;
-    	
+
+	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
+   	MimeTypeService mimeTypeService;
+
 	static final int DEFAULT_BUFFER_SIZE = 4096;
 
 	static final String STORE_TYPE_COOKIE = "cookie";
 	static final String STORE_TYPE_SESSION = "session";
-
-	@Reference
-	MimeTypeService mimeTypeService;
 
 	//HashMap<String,String> = mimenew HashMap<String, String>();
 

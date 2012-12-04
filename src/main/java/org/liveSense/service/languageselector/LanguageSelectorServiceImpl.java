@@ -19,6 +19,8 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.PropertyUnbounded;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.liveSense.core.Configurator;
@@ -63,14 +65,14 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 
 	private String storeKeyName = DEFAULT_STORE_KEY_NAME;
 
-	private HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
-	private HashMap<String, Locale> domainDefaults = new HashMap<String, Locale>();
-	private HashMap<String, HashMap<String, Locale>> customLangs = new HashMap<String, HashMap<String,Locale>>();
-	private HashMap<String, HashMap<String, String>> langNames = new HashMap<String, HashMap<String, String>>();
-	private HashMap<String, HashMap<String, String>> countryNames = new HashMap<String, HashMap<String, String>>();
+	private final HashMap<String, HashMap<String, Locale>> langs = new HashMap<String, HashMap<String,Locale>>();
+	private final HashMap<String, Locale> domainDefaults = new HashMap<String, Locale>();
+	private final HashMap<String, HashMap<String, Locale>> customLangs = new HashMap<String, HashMap<String,Locale>>();
+	private final HashMap<String, HashMap<String, String>> langNames = new HashMap<String, HashMap<String, String>>();
+	private final HashMap<String, HashMap<String, String>> countryNames = new HashMap<String, HashMap<String, String>>();
 
 
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
 	Configurator configurator;
 
 	private Bundle bundle = null;
@@ -180,7 +182,6 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 			}
 		}
 	}
-
 
 	private static Locale string2Locale(String str) {
 		Locale ret = null;
