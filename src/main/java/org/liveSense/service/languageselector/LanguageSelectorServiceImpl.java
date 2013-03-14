@@ -254,11 +254,17 @@ public class LanguageSelectorServiceImpl implements LanguageSelectorService {
 		return null;
 	}
 
-
 	public Locale getLocaleByRequest(
 			HttpServletRequest request) {
 
 		RequestWrapper rw = new RequestWrapper(request, configurator.getDefaultLocale(), storeKeyName);
+		return rw.getLocale();
+	}
+
+	public Locale getLocaleByRequest(
+			HttpServletRequest request, Locale defaultLocale) {
+
+		RequestWrapper rw = new RequestWrapper(request, defaultLocale, storeKeyName);
 		return rw.getLocale();
 	}
 

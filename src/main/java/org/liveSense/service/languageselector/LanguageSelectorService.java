@@ -7,12 +7,13 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 
 public interface LanguageSelectorService {
-	public void addLanguage(String domain,String locale);
-	public void addLanguage(String domain, Locale locale);
-    public List<Locale> getAvailableLanguages(String domain);
-	public String getLanguageName(Locale lang, Locale locale);
-	public String getLanguageName(String lang, String locale);
-	public InputStream getFlag(String locale, String size, String imageType);
-	public Locale getLocaleByRequest(HttpServletRequest request);
-	public String getStoreKeyName();
+	void addLanguage(String domain,String locale);
+	void addLanguage(String domain, Locale locale);
+    List<Locale> getAvailableLanguages(String domain);
+	String getLanguageName(Locale lang, Locale locale);
+	String getLanguageName(String lang, String locale);
+	InputStream getFlag(String locale, String size, String imageType);
+	Locale getLocaleByRequest(HttpServletRequest request);
+	String getStoreKeyName();
+	Locale getLocaleByRequest(HttpServletRequest request, Locale defaultLocale);
 }
