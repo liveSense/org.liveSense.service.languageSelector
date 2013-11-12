@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><features name="liveSense-${liveSense.version}-service-languageSelector" xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+	<feature name="liveSense-service-languageSelector" version="${liveSense.service.languageSelector.version}" description="liveSense service languageSelector">
+        <feature>liveSense-core-base</feature>
+		<bundle>mvn:com.github.livesense/org.liveSense.service.languageSelector/${liveSense.service.languageSelector.version}</bundle>
+	</feature>
+</features>
