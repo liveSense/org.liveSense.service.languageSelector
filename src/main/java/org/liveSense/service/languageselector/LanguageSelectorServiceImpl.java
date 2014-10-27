@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.liveSense.core.Configurator;
-import org.liveSense.core.wrapper.RequestWrapper;
+import org.liveSense.misc.jcrWrapper.RequestWrapper;
 import org.osgi.framework.Bundle;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
